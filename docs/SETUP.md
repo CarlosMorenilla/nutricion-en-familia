@@ -34,3 +34,6 @@ Para una nueva integración Git usa Node 24, comando `npm run build`, salida `di
 Comprueba OAuth, lectura, escritura y aislamiento con el administrador, cada familiar y una cuenta no autorizada. Revisa los Security Advisors. Una cuenta no autorizada no debe ver perfiles, planes ni registros.
 
 Los respaldos contienen datos de la aplicación, no identidades de autenticación ni configuración OAuth. No existe restauración automática; recuperar requiere validar esquema y relaciones y vincular las identidades de destino.
+## Estado de la primera entrega
+
+La compilación, el análisis estático y las pruebas PostgreSQL pasan localmente. La primera ejecución de GitHub Actions no llegó a iniciar un runner por un bloqueo de facturación de la cuenta propietaria; por tanto, todavía no hay una validación satisfactoria en CI remoto. El workflow queda preparado para cuando la cuenta permita ejecutarlo.
