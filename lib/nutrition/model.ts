@@ -174,6 +174,15 @@ export function decimal(value: string, min = 0.1, max = 400): number | null {
     throw new Error('El valor debe estar entre ' + min + ' y ' + max + '.');
   return n;
 }
+export function sleepDuration(value: string): number | null {
+  if (!value.includes(':')) return decimal(value, 0, 24);
+  const match = /^(\d{1,2}):(\d{2})$/.exec(value.trim());
+  if (!match || Number(match[2]) > 59)
+    throw new Error('Usa horas:minutos, por ejemplo 7:30.');
+  const hours = Number(match[1]) + Number(match[2]) / 60;
+  if (hours > 24) throw new Error('El descanso no puede superar 24 horas.');
+  return Math.round(hours * 100) / 100;
+}
 export function blankDay(): DayPlan {
   return {
     meals: Object.fromEntries(

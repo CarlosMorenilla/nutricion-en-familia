@@ -69,6 +69,28 @@ export interface HealthSample {
   imported_at: string;
   payload: Record<string, unknown>;
 }
+export function latestHealthSamples(samples: HealthSample[]) {
+  const latest = new Map<string, HealthSample>();
+  for (const sample of [...samples].sort((a, b) =>
+    a.imported_at.localeCompare(b.imported_at),
+  )) {
+    latest.set(
+      [
+        sample.member_id,
+        sample.metric,
+        sample.source,
+        sample.date,
+        sample.observed_at ?? '',
+      ].join('|'),
+      sample,
+    );
+  }
+  return [...latest.values()];
+}
+export function sleepLabel(hours: number) {
+  const minutes = Math.round(hours * 60);
+  return `${Math.floor(minutes / 60)} h ${String(minutes % 60).padStart(2, '0')} min`;
+}
 export interface HealthReport {
   kind: 'weekly' | 'manual';
   id: string;

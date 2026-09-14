@@ -64,7 +64,7 @@ import {
 import { CheckIn, MeasurementForm, WeeklyReview } from './Forms';
 import Admin from './Admin';
 import { HealthHistory } from './Health';
-import { estimatedBodyFat } from '../../lib/nutrition/health';
+import { estimatedBodyFat, sleepLabel } from '../../lib/nutrition/health';
 import { useScrollNavigation } from '../../hooks/use-scroll-navigation';
 
 type Tab = 'today' | 'week' | 'progress' | 'admin';
@@ -865,6 +865,7 @@ export default function NutritionApp() {
                     </button>
                   </section>
                   <CheckIn
+                    healthSamples={data.healthSamples}
                     key={activePerson + date + JSON.stringify(record)}
                     person={activePerson}
                     date={date}
@@ -1112,7 +1113,7 @@ export default function NutritionApp() {
                       <span>
                         {r.sleep_hours == null
                           ? 'Horas sin registrar'
-                          : r.sleep_hours.toLocaleString('es-ES') + ' h'}{' '}
+                          : sleepLabel(r.sleep_hours)}{' '}
                         ·{' '}
                         {r.sleep_quality == null
                           ? 'Calidad sin registrar'

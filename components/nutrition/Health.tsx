@@ -6,7 +6,7 @@ import {
   type Plan,
   prettyDate,
 } from '../../lib/nutrition/model';
-import { HEALTH_LABELS } from '../../lib/nutrition/health';
+import { HEALTH_LABELS, latestHealthSamples } from '../../lib/nutrition/health';
 import { supabase } from '../../lib/nutrition/repository';
 
 export function HealthHistory({
@@ -17,7 +17,7 @@ export function HealthHistory({
   person: Person;
 }) {
   const [metric, setMetric] = useState('');
-  const samples = (data.healthSamples ?? []).filter(
+  const samples = latestHealthSamples(data.healthSamples ?? []).filter(
     (s) => s.member_id === person,
   );
   if (person !== 'carlitos') return null;
@@ -112,14 +112,12 @@ export function HealthAdmin({
               return;
             }
             if (!supabase) throw new Error('No hay conexión.');
-            const { error } = await supabase
-              .from('coaching_settings')
-              .upsert({
-                member_id: 'carlitos',
-                goal: goal.trim(),
-                restrictions: restrictions.trim(),
-                updated_at: new Date().toISOString(),
-              });
+            const { error } = await supabase.from('coaching_settings').upsert({
+              member_id: 'carlitos',
+              goal: goal.trim(),
+              restrictions: restrictions.trim(),
+              updated_at: new Date().toISOString(),
+            });
             if (error) throw error;
             notify('Objetivo y restricciones guardados.');
           } catch (error) {

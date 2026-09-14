@@ -1,7 +1,12 @@
 'use client';
 import { useState } from 'react';
 import { Save, ChevronDown, Trash2 } from 'lucide-react';
-import { estimatedBodyFat } from '../../lib/nutrition/health';
+import {
+  estimatedBodyFat,
+  latestHealthSamples,
+  sleepLabel,
+  type HealthSample,
+} from '../../lib/nutrition/health';
 import {
   type Person,
   type Daily,
@@ -11,22 +16,30 @@ import {
   MEASURES,
   MEASURE_LABELS,
   decimal,
+  sleepDuration,
   today,
   monday,
 } from '../../lib/nutrition/model';
 export function CheckIn({
+  healthSamples = [],
   person,
   date,
   record,
   onSave,
   busy,
 }: {
+  healthSamples?: HealthSample[];
   person: Person;
   date: string;
   record?: Daily;
   onSave: (r: Daily) => void;
   busy: boolean;
 }) {
+  const SleepFields = person === 'carlitos' ? 'details' : 'div';
+  const importedSleep = latestHealthSamples(healthSamples).filter(
+    (s) =>
+      s.member_id === person && s.metric === 'sleep_hours' && s.date === date,
+  );
   const [diet, setDiet] = useState<Status>(record?.diet ?? null),
     [training, setTraining] = useState<Status>(record?.training ?? null),
     [comment, setComment] = useState(record?.comment || ''),
@@ -57,7 +70,7 @@ export function CheckIn({
       onSubmit={(e) => {
         e.preventDefault();
         try {
-          const sleep_hours = decimal(sleepHours, 0, 24);
+          const sleep_hours = sleepDuration(sleepHours);
           setError('');
           onSave({
             member_id: person,
@@ -82,33 +95,66 @@ export function CheckIn({
         <p className="hint">
           El descanso de la noche anterior. Todo es opcional.
         </p>
-        <label>
-          Horas de sueño
-          <input
-            inputMode="decimal"
-            placeholder="Ej. 7,5"
-            value={sleepHours}
-            onChange={(e) => setSleepHours(e.target.value)}
-          />
-        </label>
-        <div className="scale">
-          {[1, 2, 3, 4, 5].map((n) => (
-            <button
-              type="button"
-              key={n}
-              aria-label={'Calidad del sueño: ' + n + ' de 5'}
-              aria-pressed={sleepQuality === n}
-              className={sleepQuality === n ? 'chosen' : ''}
-              onClick={() => setSleepQuality(sleepQuality === n ? null : n)}
-            >
-              {n}
-            </button>
-          ))}
-        </div>
-        <div className="scale-labels">
-          <span>Muy mala</span>
-          <span>Muy buena</span>
-        </div>
+        {person === 'carlitos' && (
+          <div>
+            {importedSleep.map((s) => (
+              <p key={s.id}>
+                <strong>
+                  {s.value == null ? 'Sin duración' : sleepLabel(s.value)}
+                </strong>{' '}
+                · {s.source}
+              </p>
+            ))}
+            {!importedSleep.length && (
+              <p>Aún no hay sueño importado para esta fecha.</p>
+            )}
+            <p className="hint">
+              Freddy se consulta cada sábado. No necesitas introducir las horas
+              a mano.
+            </p>
+            {record?.sleep_hours != null && (
+              <p className="hint">
+                Registro manual conservado: {sleepLabel(record.sleep_hours)}.
+              </p>
+            )}
+          </div>
+        )}
+        <SleepFields>
+          {person === 'carlitos' && (
+            <summary>Corregir descanso o añadir sensaciones (opcional)</summary>
+          )}
+          <label>
+            Horas de sueño
+            <input
+              inputMode="text"
+              placeholder="Ej. 7:30 o 7,5"
+              value={sleepHours}
+              onChange={(e) => setSleepHours(e.target.value)}
+            />
+          </label>
+          <p className="hint">
+            Puedes escribir 7:30 para 7 horas y 30 minutos, o 7,5 en horas
+            decimales. 7,30 equivale a 7 horas y 18 minutos.
+          </p>
+          <div className="scale">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                type="button"
+                key={n}
+                aria-label={'Calidad del sueño: ' + n + ' de 5'}
+                aria-pressed={sleepQuality === n}
+                className={sleepQuality === n ? 'chosen' : ''}
+                onClick={() => setSleepQuality(sleepQuality === n ? null : n)}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+          <div className="scale-labels">
+            <span>Muy mala</span>
+            <span>Muy buena</span>
+          </div>
+        </SleepFields>
       </fieldset>
       {fields.map((f) => (
         <fieldset key={f.label}>

@@ -7,6 +7,7 @@ import { demoData } from '../lib/nutrition/demo';
 import {
   type DayPlan,
   decimal,
+  sleepDuration,
   monday,
   addDays,
   adherence,
@@ -90,6 +91,12 @@ void test('RFM conserva los parámetros históricos; periodos y sueño sin dupli
   assert.equal(sleepHours([]), null);
 });
 void test('fechas, coma decimal, ausencia de datos y medias', () => {
+  assert.equal(sleepDuration('7:30'), 7.5);
+  assert.equal(sleepDuration('7,30'), 7.3);
+  assert.equal(sleepDuration('8:18'), 8.3);
+  assert.equal(sleepDuration('24:00'), 24);
+  assert.throws(() => sleepDuration('24:01'));
+  assert.throws(() => sleepDuration('7:60'));
   assert.equal(decimal('74,85'), 74.85);
   assert.equal(decimal(''), null);
   assert.equal(decimal('7,5', 0, 24), 7.5);
