@@ -63,6 +63,8 @@ import {
 } from '../../lib/nutrition/repository';
 import { CheckIn, MeasurementForm, WeeklyReview } from './Forms';
 import Admin from './Admin';
+import { HealthHistory } from './Health';
+import { estimatedBodyFat } from '../../lib/nutrition/health';
 import { useScrollNavigation } from '../../hooks/use-scroll-navigation';
 
 type Tab = 'today' | 'week' | 'progress' | 'admin';
@@ -898,6 +900,18 @@ export default function NutritionApp() {
                       ? prettyDate(lastWeight.date)
                       : 'Registra tu primera medida'}
                   </p>
+                  {lastWeight?.body_fat != null && (
+                    <p>
+                      Grasa medida:{' '}
+                      {lastWeight.body_fat.toLocaleString('es-ES')} %
+                    </p>
+                  )}
+                  {lastWeight && estimatedBodyFat(lastWeight) != null && (
+                    <p>
+                      Grasa estimada RFM:{' '}
+                      {estimatedBodyFat(lastWeight)!.toLocaleString('es-ES')} %
+                    </p>
+                  )}
                 </div>
                 <div className="stat-card">
                   <span>Alimentación esta semana</span>
@@ -1046,7 +1060,7 @@ export default function NutritionApp() {
                     <button key={m.date} onClick={() => setDate(m.date)}>
                       <strong>{prettyDate(m.date, true)}</strong>
                       <span>
-                        {MEASURES.filter((k) => m[k] !== null)
+                        {MEASURES.filter((k) => m[k] != null)
                           .map(
                             (k) =>
                               MEASURE_LABELS[k] +
@@ -1055,6 +1069,10 @@ export default function NutritionApp() {
                               (k === 'weight' ? ' kg' : ' cm'),
                           )
                           .join(' · ')}
+                        {m.body_fat != null &&
+                          ` · Grasa medida: ${m.body_fat.toLocaleString('es-ES')} % (${m.body_fat_source || 'fuente sin indicar'})`}
+                        {estimatedBodyFat(m) != null &&
+                          ` · Grasa estimada RFM: ${estimatedBodyFat(m)!.toLocaleString('es-ES')} %`}
                       </span>
                       <ChevronRight size={16} />
                     </button>
@@ -1115,9 +1133,13 @@ export default function NutritionApp() {
               </div>
             </section>
           )}
+          {tab === 'progress' && (
+            <HealthHistory data={data} person={activePerson} />
+          )}
           {admin && (
             <div hidden={tab !== 'admin'}>
               <Admin
+                demo={demo}
                 data={data}
                 busy={busy}
                 onSave={saveEdited}

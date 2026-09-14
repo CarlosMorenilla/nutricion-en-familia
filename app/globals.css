@@ -1794,3 +1794,9 @@ details > p {
   font-size: 14px;
   line-height: 1.6;
 }
+.health-row { display: flex; flex-direction: column; gap: .3rem; padding: .85rem 0; border-bottom: 1px solid #e7eeea; overflow-wrap: anywhere; }
+.health-row span { color: #52665c; font-size: .88rem; }
+.health-report { margin-top: 1.5rem; border-top: 1px solid #e7eeea; padding-top: 1.25rem; }
+.health-summary { white-space: pre-line; overflow-wrap: anywhere; }
+.health-change { border-left: 3px solid #2a6951; padding: .5rem 1rem; margin: 1rem 0; }
+.health-change p { margin: .35rem 0; }

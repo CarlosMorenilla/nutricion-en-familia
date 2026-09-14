@@ -16,6 +16,79 @@ import {
   publishedPlan,
 } from '../lib/nutrition/model';
 import { exportData, csvCell } from '../lib/nutrition/export';
+import {
+  estimatedBodyFat,
+  reviewPeriod,
+  sleepHours,
+} from '../lib/nutrition/health';
+import { normalizeFreddy } from '../scripts/normalize-freddy';
+void test('Freddy: fechas de Madrid, ausencia de datos, idempotencia y fuentes separadas', () => {
+  const result = {
+    content: [
+      {
+        type: 'text',
+        text: '2026-09-08:\n  steps: 100 count (Apple Health · Garmin)\n  steps: 90 count (Apple Health · iPhone)\n2026-09-08T23:00:\n  sleep_analysis_raw: — (Apple Health · Garmin)\n    raw: [{"stage":"core","start":"2026-09-08T23:00:00Z","end":"2026-09-09T07:00:00Z"}]',
+      },
+    ],
+  };
+  const rows = normalizeFreddy([result, result]);
+  assert.equal(rows.filter((s) => s.metric === 'steps').length, 2);
+  assert.equal(rows.find((s) => s.metric === 'sleep_hours')?.value, 8);
+  assert.equal(
+    rows.find((s) => s.metric === 'sleep_hours')?.date,
+    '2026-09-09',
+  );
+  assert.equal(rows.filter((s) => s.metric === 'body_mass').length, 0);
+  assert.throws(
+    () => normalizeFreddy([{ isError: true, content: [] }]),
+    /error/,
+  );
+});
+void test('RFM conserva los parámetros históricos; periodos y sueño sin duplicados', () => {
+  assert.equal(
+    estimatedBodyFat({ height: 180, waist: 90, rfm_sex: 'male' }),
+    24,
+  );
+  assert.equal(
+    estimatedBodyFat({ height: 180, waist: 90, rfm_sex: 'female' }),
+    36,
+  );
+  assert.equal(
+    estimatedBodyFat({ height: 180, waist: null, rfm_sex: 'male' }),
+    null,
+  );
+  assert.equal(
+    estimatedBodyFat({ height: 180, waist: 10, rfm_sex: 'male' }),
+    null,
+  );
+  assert.equal(
+    estimatedBodyFat({ height: 180, waist: 90, rfm_sex: null }),
+    null,
+  );
+  assert.deepEqual(reviewPeriod('2026-09-19'), {
+    start: '2026-09-12',
+    end: '2026-09-18',
+    target: '2026-09-21',
+  });
+  assert.deepEqual(reviewPeriod('2026-03-29'), {
+    start: '2026-03-21',
+    end: '2026-03-27',
+    target: '2026-03-30',
+  });
+  assert.deepEqual(reviewPeriod('2026-10-25'), {
+    start: '2026-10-17',
+    end: '2026-10-23',
+    target: '2026-10-26',
+  });
+  assert.equal(
+    sleepHours([
+      { stage: 'core', start: '2026-09-10T00:00Z', end: '2026-09-10T08:00Z' },
+      { stage: 'rem', start: '2026-09-10T07:00Z', end: '2026-09-10T08:00Z' },
+    ]),
+    8,
+  );
+  assert.equal(sleepHours([]), null);
+});
 void test('fechas, coma decimal, ausencia de datos y medias', () => {
   assert.equal(decimal('74,85'), 74.85);
   assert.equal(decimal(''), null);
@@ -87,6 +160,24 @@ void test('SQL real: RLS, Google autorizado, publicación atómica, historial y 
  grant usage on schema auth to authenticated;grant execute on function auth.uid() to authenticated;`);
   await db.exec(
     readFileSync(new URL('../database/schema.sql', import.meta.url), 'utf8'),
+  );
+  await db.exec(
+    readFileSync(
+      new URL(
+        '../database/migrations/20260914_health_reviews.sql',
+        import.meta.url,
+      ),
+      'utf8',
+    ),
+  );
+  await db.exec(
+    readFileSync(
+      new URL(
+        '../database/migrations/20260914_manual_review.sql',
+        import.meta.url,
+      ),
+      'utf8',
+    ),
   );
   const ids = {
     carlitos: '00000000-0000-4000-8000-000000000001',
@@ -257,6 +348,112 @@ void test('SQL real: RLS, Google autorizado, publicación atómica, historial y 
     [p.id],
   );
   assert.notEqual(old.rows[0].days[0].meals.comida.portion, 'Nueva ración');
+  await db.query(
+    "insert into measurements(member_id,date,body_fat,height,waist,rfm_sex) values('carlitos',$1,24,180,90,'male')",
+    [today()],
+  );
+  await assert.rejects(
+    db.query("update measurements set body_fat=100 where member_id='carlitos'"),
+    /check constraint/i,
+  );
+  await db.query(
+    "insert into coaching_settings(member_id,goal) values('carlitos','Mantener hábitos')",
+  );
+  await assert.rejects(
+    db.query("select private.ingest_health_samples('[]')"),
+    /permission/i,
+  );
+  await assert.rejects(
+    db.query("select private.record_health_review('{}')"),
+    /permission/i,
+  );
+  await db.exec('reset role');
+  const sample = JSON.stringify([
+    {
+      source_key: 'synthetic-1',
+      metric: 'steps',
+      date: today(),
+      source: 'Synthetic',
+      value: 2000,
+      unit: 'count',
+    },
+  ]);
+  await db.query('select private.ingest_health_samples($1)', [sample]);
+  await db.query('select private.ingest_health_samples($1)', [sample]);
+  assert.equal((await db.query('select * from health_samples')).rows.length, 1);
+  assert.equal(
+    (await db.query('select * from measurements where body_fat=24')).rows
+      .length,
+    1,
+  );
+  const period = reviewPeriod(today());
+  const report = JSON.stringify({
+    period_start: period.start,
+    status: 'insufficient',
+    summary: 'Datos insuficientes',
+    changes: [],
+  });
+  const reportId = (
+    await db.query<{ id: string }>(
+      'select private.record_health_review($1) as id',
+      [report],
+    )
+  ).rows[0].id;
+  assert.equal(
+    (
+      await db.query<{ id: string }>(
+        'select private.record_health_review($1) as id',
+        [report],
+      )
+    ).rows[0].id,
+    reportId,
+  );
+  assert.equal((await db.query('select * from health_reports')).rows.length, 1);
+  const reportRow = (
+    await db.query<{ draft_plan_id: string }>(
+      'select draft_plan_id from health_reports',
+    )
+  ).rows[0];
+  assert.ok(reportRow.draft_plan_id);
+  assert.equal(
+    (
+      await db.query<{ status: string }>(
+        'select status from plan_versions where id=$1',
+        [reportRow.draft_plan_id],
+      )
+    ).rows[0].status,
+    'draft',
+  );
+  const originalMama = (
+    await db.query<{ days: unknown }>(
+      "select days from member_plans where plan_id=$1 and member_id='mama'",
+      [next.id],
+    )
+  ).rows[0].days;
+  assert.deepEqual(
+    (
+      await db.query<{ days: unknown }>(
+        "select days from member_plans where plan_id=$1 and member_id='mama'",
+        [reportRow.draft_plan_id],
+      )
+    ).rows[0].days,
+    originalMama,
+  );
+  for (const who of ['mama', 'papa', 'outsider'] as const) {
+    await asUser(who);
+    for (const table of [
+      'health_samples',
+      'health_reports',
+      'coaching_settings',
+    ])
+      assert.equal((await db.query('select * from ' + table)).rows.length, 0);
+    await assert.rejects(
+      db.query(
+        "insert into coaching_settings(member_id,goal) values('carlitos','Alterado') on conflict(member_id) do update set goal='Alterado'",
+      ),
+      /policy|security/i,
+    );
+  }
   await db.exec('reset role');
   await db.exec('set role anon');
   await assert.rejects(db.query('select * from measurements'), /permission/i);

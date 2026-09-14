@@ -2,7 +2,7 @@
 
 ## Base de datos y acceso
 
-1. Crea un proyecto Supabase nuevo y ejecuta `database/schema.sql`. Crea tres perfiles vacíos, sin datos familiares.
+1. Crea un proyecto Supabase nuevo y ejecuta `database/schema.sql`, seguido de los archivos de `database/migrations/` en orden. Crea tres perfiles vacíos, sin datos familiares.
 2. Configura un cliente OAuth web de Google y activa Google en Supabase → Authentication → Sign In / Providers. Introduce el secreto directamente allí.
 3. Registra el callback mostrado por Supabase en las URI de redirección autorizadas de Google.
 4. Configura Site URL y los retornos exactos en Supabase → URL Configuration. Para desarrollo añade `http://localhost:3000/`.

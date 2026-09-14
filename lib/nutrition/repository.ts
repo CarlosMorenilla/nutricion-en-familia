@@ -35,9 +35,15 @@ export async function signIn() {
 async function rows(table: string) {
   if (!supabase) throw new Error('No hay conexión configurada.');
   const out: Record<string, unknown>[] = [];
-  const keys =
-    table === 'profiles' || table === 'plan_versions'
-      ? ['id']
+  const keys = [
+    'profiles',
+    'plan_versions',
+    'health_samples',
+    'health_reports',
+  ].includes(table)
+    ? ['id']
+    : table === 'coaching_settings'
+      ? ['member_id']
       : table === 'member_plans'
         ? ['plan_id', 'member_id']
         : table === 'meal_bases'
@@ -55,19 +61,36 @@ async function rows(table: string) {
   }
 }
 export async function fetchData(): Promise<DataSet> {
-  const [profiles, versions, bases, personal, daily, measurements, reviews] =
-    await Promise.all(
-      [
-        'profiles',
-        'plan_versions',
-        'meal_bases',
-        'member_plans',
-        'daily_records',
-        'measurements',
-        'weekly_reviews',
-      ].map(rows),
-    );
+  const [
+    profiles,
+    versions,
+    bases,
+    personal,
+    daily,
+    measurements,
+    reviews,
+    healthSamples,
+    healthReports,
+    coachingSettings,
+  ] = await Promise.all(
+    [
+      'profiles',
+      'plan_versions',
+      'meal_bases',
+      'member_plans',
+      'daily_records',
+      'measurements',
+      'weekly_reviews',
+      'health_samples',
+      'health_reports',
+      'coaching_settings',
+    ].map(rows),
+  );
   return {
+    healthSamples: healthSamples as unknown as DataSet['healthSamples'],
+    healthReports: healthReports as unknown as DataSet['healthReports'],
+    coachingSettings:
+      coachingSettings as unknown as DataSet['coachingSettings'],
     profiles: profiles as unknown as Profile[],
     plans: versions.map((v) => ({
       ...v,

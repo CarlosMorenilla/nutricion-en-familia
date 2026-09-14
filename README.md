@@ -17,6 +17,10 @@ Este proyecto reúne esos flujos en una interfaz en español pensada para móvil
 - **Mi evolución:** peso, medidas, medias semanales con número de observaciones, historial de descanso y revisión semanal.
 - **Administración:** borradores, platos compartidos, raciones personales y publicación con historial.
 - **Exportación:** ZIP de CSV por persona y periodo, o respaldo JSON de los datos de la aplicación.
+- **Composición corporal:** grasa medida con procedencia y estimación RFM opcional; parámetros guardados por fecha.
+- **Revisión asistida:** instantáneas de Apple Health vía Freddy, informe semanal y propuesta editable antes de publicar. La tarea se ejecuta en Codex, separada de la web, sin API de IA de pago.
+
+Consulta la [guía de salud y revisión semanal](docs/HEALTH_AUTOMATION.md) para usar estas funciones y conocer los requisitos de la tarea programada.
 
 La barra móvil es flotante y translúcida. Se oculta al bajar, vuelve al subir y permanece accesible mediante teclado. Se respeta la preferencia de movimiento reducido.
 

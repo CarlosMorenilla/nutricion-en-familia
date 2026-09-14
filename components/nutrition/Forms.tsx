@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { Save, ChevronDown, Trash2 } from 'lucide-react';
+import { estimatedBodyFat } from '../../lib/nutrition/health';
 import {
   type Person,
   type Daily,
@@ -174,6 +175,16 @@ export function MeasurementForm({
   onDelete: () => void;
   busy: boolean;
 }) {
+  const [fat, setFat] = useState(
+    record?.body_fat?.toString().replace('.', ',') ?? '',
+  );
+  const [height, setHeight] = useState(
+    record?.height?.toString().replace('.', ',') ?? '',
+  );
+  const [sex, setSex] = useState<Measurement['rfm_sex']>(
+    record?.rfm_sex ?? null,
+  );
+  const [source, setSource] = useState(record?.body_fat_source ?? '');
   const [values, setValues] = useState(
       Object.fromEntries(
         MEASURES.map((k) => [
@@ -195,10 +206,24 @@ export function MeasurementForm({
               decimal(values[k], 0.1, k === 'weight' ? 400 : 300),
             ]),
           );
-          if (Object.values(numbers).every((v) => v === null))
+          const composition = {
+            body_fat: decimal(fat, 0.01, 99.99),
+            height: decimal(height, 100, 250),
+            rfm_sex: sex,
+            body_fat_source: source.trim(),
+          };
+          if (
+            Object.values(numbers).every((v) => v === null) &&
+            composition.body_fat == null
+          )
             throw new Error('Introduce al menos un peso o una medida.');
           setError('');
-          onSave({ member_id: person, date, ...numbers } as Measurement);
+          onSave({
+            member_id: person,
+            date,
+            ...numbers,
+            ...composition,
+          } as Measurement);
         } catch (err) {
           setError((err as Error).message);
         }
@@ -235,6 +260,82 @@ export function MeasurementForm({
           ))}
         </div>
       </details>
+      <fieldset>
+        <legend>Composición corporal (opcional)</legend>
+        <div className="form-grid">
+          <label>
+            Grasa medida (%)
+            <input
+              inputMode="decimal"
+              value={fat}
+              onChange={(e) => setFat(e.target.value)}
+              placeholder="Dato de tu báscula"
+            />
+          </label>
+          <label>
+            Procedencia de la medición
+            <input
+              maxLength={200}
+              value={source}
+              onChange={(e) => setSource(e.target.value)}
+              placeholder="Ej. báscula de bioimpedancia"
+            />
+          </label>
+          <label>
+            Altura en esta fecha (cm)
+            <input
+              inputMode="decimal"
+              value={height}
+              onChange={(e) => setHeight(e.target.value)}
+            />
+          </label>
+          <label>
+            Parámetro de sexo de la fórmula
+            <select
+              value={sex ?? ''}
+              onChange={(e) =>
+                setSex((e.target.value || null) as Measurement['rfm_sex'])
+              }
+            >
+              <option value="">Sin seleccionar</option>
+              <option value="male">Masculino</option>
+              <option value="female">Femenino</option>
+            </select>
+          </label>
+        </div>
+        <p className="hint">
+          Estimación RFM para adultos, a partir de altura y cintura. Mide la
+          cintura horizontalmente a la altura del borde superior de la cadera,
+          tras espirar con normalidad. Se conservan los datos de cada fecha.
+        </p>
+        <p aria-live="polite">
+          <strong>Grasa estimada (RFM): </strong>
+          {(() => {
+            const value = estimatedBodyFat({
+              height: height.trim() ? Number(height.replace(',', '.')) : null,
+              waist: values.waist.trim()
+                ? Number(values.waist.replace(',', '.'))
+                : null,
+              rfm_sex: sex,
+            });
+            return value == null
+              ? 'Completa altura, cintura y parámetro de sexo con valores válidos.'
+              : value.toLocaleString('es-ES') + ' %';
+          })()}
+        </p>
+        <p className="hint">
+          Es una estimación orientativa de grasa, no de músculo. La
+          bioimpedancia también tiene variabilidad.{' '}
+          <a
+            href="https://www.nature.com/articles/s41598-018-29362-1"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Método RFM
+          </a>
+          .
+        </p>
+      </fieldset>
       {error && (
         <p role="alert" className="error">
           {error}

@@ -19,13 +19,15 @@ import {
   validatePlan,
 } from '../../lib/nutrition/model';
 import { download, exportData } from '../../lib/nutrition/export';
+import { HealthAdmin } from './Health';
 type Props = {
+  demo: boolean;
   data: DataSet;
   busy: boolean;
   onSave: (p: Plan, publish: boolean) => Promise<void>;
   notify: (s: string) => void;
 };
-export default function Admin({ data, busy, onSave, notify }: Props) {
+export default function Admin({ data, busy, onSave, notify, demo }: Props) {
   const [selected, setSelected] = useState(''),
     [edit, setEdit] = useState<Plan | null>(null),
     [person, setPerson] = useState<Person>('carlitos'),
@@ -168,6 +170,7 @@ export default function Admin({ data, busy, onSave, notify }: Props) {
   }
   return (
     <div className="admin-layout">
+      <HealthAdmin data={data} onOpen={open} notify={notify} demo={demo} />
       <div className="card">
         <div className="section-title">
           <div>

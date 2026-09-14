@@ -47,6 +47,17 @@ export function exportData(
     .filter((p) => p.members.length);
   const entries: Record<string, Uint8Array> = {};
   const files: Record<string, object[]> = {
+    salud_importada: (data.healthSamples ?? []).filter(
+      (r) => selected(r.member_id) && (backup || inRange(r.date)),
+    ),
+    informes_salud: (data.healthReports ?? []).filter(
+      (r) =>
+        selected(r.member_id) &&
+        (backup || (r.period_start <= to && r.period_end >= from)),
+    ),
+    objetivos: (data.coachingSettings ?? []).filter((r) =>
+      selected(r.member_id),
+    ),
     perfiles: data.profiles
       .filter((p) => selected(p.id))
       .map(({ user_id: _user_id, ...rest }) => rest),
@@ -104,7 +115,7 @@ export function exportData(
   if (backup)
     entries['respaldo.json'] = strToU8(
       JSON.stringify(
-        { schema_version: 1, exported_at: new Date().toISOString(), ...data },
+        { schema_version: 2, exported_at: new Date().toISOString(), ...data },
         null,
         2,
       ),

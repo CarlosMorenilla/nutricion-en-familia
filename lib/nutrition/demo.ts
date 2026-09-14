@@ -102,5 +102,53 @@ export function demoData(): DataSet {
         sleep_quality: i === 3 ? null : 4,
       });
   }
+  data.healthSamples = [
+    {
+      id: 'demo-sleep',
+      member_id: 'carlitos',
+      source_key: 'demo-sleep',
+      metric: 'sleep_hours',
+      date: addDays(today(), -1),
+      source: 'Dispositivo de ejemplo · datos ficticios',
+      value: 7.5,
+      unit: 'h',
+      observed_at: null,
+      imported_at: new Date().toISOString(),
+      payload: { demo: true },
+    },
+  ];
+  data.coachingSettings = [
+    {
+      member_id: 'carlitos',
+      goal: 'Ejemplo: mantener hábitos y recuperar la rutina.',
+      restrictions: 'Datos ficticios para explorar la interfaz.',
+      updated_at: new Date().toISOString(),
+    },
+  ];
+  data.healthReports = [
+    {
+      id: 'demo-report',
+      kind: 'manual',
+      member_id: 'carlitos',
+      period_start: addDays(plan.week, -7),
+      period_end: addDays(plan.week, -1),
+      target_week: plan.week,
+      status: 'ready',
+      summary:
+        'Ejemplo ficticio de revisión: mantener la regularidad de las comidas y revisar el descanso antes de aumentar la carga. En una cuenta real aparecerían la cobertura y los datos de cada fuente.',
+      evidence: { demo: true },
+      changes: [
+        {
+          area: 'Organización semanal',
+          before: 'Rutina irregular',
+          after: 'Planificar comidas y descanso',
+          reason: 'Ejemplo de una propuesta revisable.',
+        },
+      ],
+      base_plan_id: plan.id,
+      draft_plan_id: plan.id,
+      created_at: new Date().toISOString(),
+    },
+  ];
   return data;
 }

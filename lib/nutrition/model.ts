@@ -96,6 +96,10 @@ export const MEASURE_LABELS: Record<Measure, string> = {
   thigh: 'Muslo',
 };
 export interface Measurement {
+  body_fat?: number | null;
+  body_fat_source?: string;
+  height?: number | null;
+  rfm_sex?: 'male' | 'female' | null;
   member_id: Person;
   date: string;
   weight: number | null;
@@ -114,6 +118,9 @@ export interface Review {
   comment: string;
 }
 export interface DataSet {
+  healthSamples?: import('./health').HealthSample[];
+  healthReports?: import('./health').HealthReport[];
+  coachingSettings?: import('./health').CoachingSettings[];
   profiles: Profile[];
   plans: Plan[];
   daily: Daily[];
