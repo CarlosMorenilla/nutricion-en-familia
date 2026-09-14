@@ -11,7 +11,7 @@
     "lint": "oxlint app components/nutrition lib/nutrition tests vite.config.ts",
     "format": "oxfmt",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "node --import tsx --test tests/core.test.ts",
+    "test": "node --import tsx --test tests/core.test.ts tests/cloud-inbox.test.ts",
     "deploy": "wrangler pages deploy dist/client --project-name nutricion-family"
   },
   "dependencies": {

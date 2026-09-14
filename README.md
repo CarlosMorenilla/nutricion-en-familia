@@ -18,7 +18,7 @@ Este proyecto reúne esos flujos en una interfaz en español pensada para móvil
 - **Administración:** borradores, platos compartidos, raciones personales y publicación con historial.
 - **Exportación:** ZIP de CSV por persona y periodo, o respaldo JSON de los datos de la aplicación.
 - **Composición corporal:** grasa medida con procedencia y estimación RFM opcional; parámetros guardados por fecha.
-- **Revisión asistida:** instantáneas de Apple Health vía Freddy, informe semanal y propuesta editable antes de publicar. La tarea se ejecuta en Codex, separada de la web, sin API de IA de pago.
+- **Revisión asistida:** ChatGPT Work guarda cada semana las instantáneas de Apple Health vía Freddy y una revisión en una bandeja privada, incluso con el PC apagado. Codex recoge las revisiones pendientes cuando está activo y prepara propuestas editables antes de publicar. Sin API de IA de pago; requiere conexiones autorizadas y disponibilidad en la cuenta. [Funcionamiento y límites](docs/HEALTH_AUTOMATION.md).
 
 Consulta la [guía de salud y revisión semanal](docs/HEALTH_AUTOMATION.md) para usar estas funciones y conocer los requisitos de la tarea programada.
 
