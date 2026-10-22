@@ -16,3 +16,5 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: node scripts/check-build.mjs
+      - run: npm run garmin:check
+      - run: npm run garmin:runtime

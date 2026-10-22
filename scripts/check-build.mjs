@@ -14,6 +14,7 @@ for (const file of names) {
     const text = readFileSync(file, 'utf8');
     assert.ok(!/[A-Z0-9._%+-]+@(?:gmail|hotmail|outlook)\.[a-z]+/i.test(text), 'Personal email in deployment');
     assert.ok(!/sb_secret_[A-Za-z0-9]+|gh[pousr]_[A-Za-z0-9]{20,}/.test(text), 'Secret token in deployment');
+    assert.ok(!/GCDC_[A-Za-z0-9+/.=-]{20,}|GARMIN_PERSONAL_API_KEY|PROBE_ADMIN_TOKEN|personal\.connectapi\.garmin\.com/.test(text), 'Garmin server code or credentials in browser deployment');
   }
 }
 console.log('Static deployment checked: ' + names.length + ' files; private paths and credential patterns checked.');
