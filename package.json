@@ -8,10 +8,13 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
-    "lint": "oxlint app components/nutrition lib/nutrition tests vite.config.ts",
+    "lint": "oxlint app components/nutrition lib/nutrition tests workers vite.config.ts",
     "format": "oxfmt",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "node --import tsx --test tests/core.test.ts tests/cloud-inbox.test.ts",
+    "test": "node --import tsx --test tests/core.test.ts tests/cloud-inbox.test.ts tests/garmin-personal.test.ts",
+    "garmin:check": "wrangler deploy --dry-run --config workers/garmin-personal/wrangler.jsonc --outdir .wrangler/garmin-build",
+    "garmin:deploy": "wrangler deploy --config workers/garmin-personal/wrangler.jsonc",
+    "garmin:runtime": "node scripts/check-garmin-runtime.mjs",
     "deploy": "wrangler pages deploy dist/client --project-name nutricion-family"
   },
   "dependencies": {

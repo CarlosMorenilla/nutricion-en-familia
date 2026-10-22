@@ -1,5 +1,9 @@
 # Revisión de salud y preparación de planes
 
+## Prueba Garmin Personal independiente
+
+La [prueba de conectividad Garmin Personal](GARMIN_PERSONAL_PROBE.md) usa un Cloudflare Worker de solo lectura, desactivado por defecto. Reemplaza el experimento de Colab, pero todavía no sustituye Freddy: autentica y comprueba cuatro consultas mínimas con diagnósticos sanitizados. No escribe muestras, bandejas, informes ni planes, ni llama a las rutinas que generan borradores. La clave se introduce únicamente como secreto de Cloudflare; cualquier clave compartida debe revocarse. La consulta real y el despliegue siguen pendientes de acceso y secreto válidos.
+
 ## Uso en la web
 
 - **Mi evolución → Registrar mis medidas**: peso, perímetros, grasa medida y su procedencia. Altura, cintura y parámetro de sexo permiten una estimación RFM para adultos. Cada fecha conserva sus parámetros; no se recalculan registros antiguos con la altura actual. RFM estima grasa, nunca músculo. [Método original](https://www.nature.com/articles/s41598-018-29362-1).
